@@ -1,15 +1,13 @@
 package com.example.shopapp.model;
 
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "products")
-@Data // toString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -32,5 +30,5 @@ public class Product extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category categoryId;
+    private Category category;
 }
