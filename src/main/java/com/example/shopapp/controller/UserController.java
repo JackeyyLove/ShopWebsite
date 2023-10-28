@@ -31,6 +31,5 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login()
+
 }
