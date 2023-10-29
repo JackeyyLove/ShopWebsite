@@ -11,6 +11,7 @@ import lombok.*;
 @Getter
 @Setter
 public class OrderDetailDto {
+    private Long id;
     @JsonProperty("order_id")
     @Min(value = 1, message = "Order's ID must be > 0")
     private Long orderId;

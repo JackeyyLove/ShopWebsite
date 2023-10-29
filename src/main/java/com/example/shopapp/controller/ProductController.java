@@ -26,7 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
-@RequestMapping("${api.prefix}/products")
+@RequestMapping("api/v1/products")
 public class ProductController {
     // Build Get all products REST API
     @GetMapping()
