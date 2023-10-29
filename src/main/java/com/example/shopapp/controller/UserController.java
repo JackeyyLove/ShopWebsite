@@ -1,7 +1,10 @@
 package com.example.shopapp.controller;
 
 import com.example.shopapp.dto.*;
+import com.example.shopapp.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -11,7 +14,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/users")
+@RequiredArgsConstructor
 public class UserController {
+    private UserService userService;
     @PostMapping("/register")
     public ResponseEntity<?> createUser(
             @Valid @RequestBody UserDto userDto,
@@ -24,11 +29,16 @@ public class UserController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok("User created successfully");
+            UserDto newUser = userService.register(userDto);
+            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    public ResponseEntity<String> login(@Valid @RequestBody UserLoginDto userLoginDto) {
+        String token = userService.login(userLoginDto.getPhoneNumber(), userLoginDto.getPassword());
+        return ResponseEntity.ok(token);
     }
 
 

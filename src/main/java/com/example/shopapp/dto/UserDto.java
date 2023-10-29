@@ -26,8 +26,8 @@ public class UserDto {
 
 
     private String retypePassword;
-    @JsonProperty("data_of_birth")
-    private Date dataOfBirth;
+    @JsonProperty("date_of_birth")
+    private Date dateOfBirth;
 
     @JsonProperty("facebook_account_id")
     private int facebookAccountId;
