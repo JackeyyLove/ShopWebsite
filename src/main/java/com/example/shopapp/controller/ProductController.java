@@ -2,8 +2,13 @@ package com.example.shopapp.controller;
 
 import com.example.shopapp.dto.CategoryDto;
 import com.example.shopapp.dto.ProductDto;
+import com.example.shopapp.dto.ProductImageDto;
+import com.example.shopapp.model.Product;
+import com.example.shopapp.model.ProductImage;
+import com.example.shopapp.service.ProductService;
 import jakarta.validation.Path;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +32,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/products")
+@RequiredArgsConstructor
 public class ProductController {
+    private final ProductService productService;
     // Build Get all products REST API
     @GetMapping()
     public ResponseEntity<String> getAllProducts(@RequestParam("page") int page, @RequestParam("limit") int limit) {
@@ -54,6 +61,7 @@ public class ProductController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
+            Product newProduct =  productService.createProduct(productDto);
             List<MultipartFile> files = productDto.getFiles();
             files = files == null ? new ArrayList<MultipartFile>() : files;
             for (MultipartFile file: files) {
@@ -70,7 +78,10 @@ public class ProductController {
                     }
                     // Save file and update thumbnail in Dto
                     String filename = storeFile(file);
-                    // Save into product in DB -> do it later
+                    // Save into product in DB
+                    ProductImage productImage = productService.createProductImage(newProduct.getId(),
+                            ProductImageDto.builder().imageUrl(filename).build()
+                    );
                 }
             }
 
