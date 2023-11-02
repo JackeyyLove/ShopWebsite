@@ -15,8 +15,10 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
+@Service
 public class ProductImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
@@ -27,7 +29,13 @@ public class ProductImpl implements ProductService {
     public Product createProduct(ProductDto productDto) {
         Category category = categoryRepository.findById(productDto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("The category with id " + productDto.getCategoryId() + " doesn't exist"));
-        Product product = modelMapper.map(productDto, Product.class);
+        Product product = Product.builder()
+                .name(productDto.getName())
+                .price(productDto.getPrice())
+                .description(productDto.getDescription())
+                .category(category)
+                .thumbnail(productDto.getThumbnail())
+                .build();
         return productRepository.save(product);
     }
 
@@ -72,7 +80,7 @@ public class ProductImpl implements ProductService {
 
     @Override
     public ProductImage createProductImage(Long productId, ProductImageDto productImageDto) throws InvalidParamException {
-        Product product = productRepository.findById(productImageDto.getProductId())
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Cannot find product with id: " + productId));
 
         ProductImage newProductImage = ProductImage.builder()

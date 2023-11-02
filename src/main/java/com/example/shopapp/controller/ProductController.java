@@ -43,15 +43,15 @@ public class ProductController {
 
     // Build get specific product REST API
     @GetMapping("/{id}")
-    public ResponseEntity<String> getProduct(@PathVariable Long id) {
-        return ResponseEntity.ok("Get the product with id " + id) ;
+    public ResponseEntity<?> getProduct(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        return ResponseEntity.ok(product) ;
 
     }
 
     //http://localhost:8088/api/v1/products
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
-    public ResponseEntity<?> createProduct(@Valid @ModelAttribute ProductDto productDto,
-                                           //@RequestPart("file") MultipartFile file,
+    @PostMapping(value = "" )
+    public ResponseEntity<?> createProduct(@Valid @RequestBody ProductDto productDto,
                                            BindingResult bindingResult) {
         try {
             if (bindingResult.hasErrors()) {
@@ -62,8 +62,23 @@ public class ProductController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
             Product newProduct =  productService.createProduct(productDto);
-            List<MultipartFile> files = productDto.getFiles();
+            return ResponseEntity.ok(newProduct);
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // upload files
+    @PostMapping(value = "/uploads/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )
+    public ResponseEntity<?> uploadFiles(@PathVariable("id") Long productId,  @ModelAttribute("file") List<MultipartFile> files) {
+        try {
+            Product existingProduct = productService.getProductById(productId);
             files = files == null ? new ArrayList<MultipartFile>() : files;
+            if (files.size() > 5) {
+                return ResponseEntity.badRequest().body("Upload maximum 5 images");
+            }
+            List<ProductImage> productImages = new ArrayList<>();
             for (MultipartFile file: files) {
                 if (file != null) {
                     if (file.getSize() == 0) continue;
@@ -79,25 +94,23 @@ public class ProductController {
                     // Save file and update thumbnail in Dto
                     String filename = storeFile(file);
                     // Save into product in DB
-                    ProductImage productImage = productService.createProductImage(newProduct.getId(),
+                    ProductImage productImage = productService.createProductImage(existingProduct.getId(),
                             ProductImageDto.builder().imageUrl(filename).build()
                     );
+                    productImages.add(productImage);
                 }
             }
-
-            return ResponseEntity.ok("Product created successfully");
-        }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.ok(productImages);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e);
         }
     }
-
     // Store file with different names
     private String storeFile(MultipartFile file) throws IOException {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
         // Add UUID before name of file to ensure that file's name is unique
         String uniqueFilename = UUID.randomUUID().toString() + "_" + fileName;
-         // Path to directory that we want to store file
+        // Path to directory that we want to store file
         java.nio.file.Path uploadDir = Paths.get("uploads");
         //Check and create directory if it doesn't exist
         if (!Files.exists(uploadDir)) {
