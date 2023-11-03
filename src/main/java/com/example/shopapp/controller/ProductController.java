@@ -9,6 +9,9 @@ import com.example.shopapp.service.ProductService;
 import jakarta.validation.Path;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +40,15 @@ public class ProductController {
     private final ProductService productService;
     // Build Get all products REST API
     @GetMapping()
-    public ResponseEntity<String> getAllProducts(@RequestParam("page") int page, @RequestParam("limit") int limit) {
-        return ResponseEntity.ok("Get all products");
+    public ResponseEntity<?> getAllProducts(@RequestParam("page") int page, @RequestParam("limit") int limit) {
+        PageRequest pageRequest = PageRequest.of(
+                page, limit,
+                Sort.by("createdAt").descending()
+        );
+        Page<Product> productPage = productService.getAllProduct(pageRequest);
+        int totalPages = productPage.getTotalPages();
+        List<Product> products = productPage.getContent();
+        return ResponseEntity.ok(products);
     }
 
     // Build get specific product REST API
