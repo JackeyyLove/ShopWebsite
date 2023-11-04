@@ -17,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class ProductImpl implements ProductService {
@@ -29,14 +31,13 @@ public class ProductImpl implements ProductService {
     public Product createProduct(ProductDto productDto) {
         Category category = categoryRepository.findById(productDto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("The category with id " + productDto.getCategoryId() + " doesn't exist"));
-        Product product = Product.builder()
-                .name(productDto.getName())
-                .price(productDto.getPrice())
-                .description(productDto.getDescription())
-                .category(category)
-                .thumbnail(productDto.getThumbnail())
-                .build();
-        return productRepository.save(product);
+       Product product = Product.builder()
+               .name(productDto.getName())
+               .price(productDto.getPrice())
+               .description(productDto.getDescription())
+               .category(category)
+               .build();
+        return productRepository.save(product) ;
     }
 
     @Override
@@ -47,9 +48,15 @@ public class ProductImpl implements ProductService {
     }
 
     @Override
-    public Page<Product> getAllProduct(PageRequest pageRequest) {
+    public Page<ProductDto> getAllProduct(PageRequest pageRequest) {
         // Get product by page and limit
-        return productRepository.findAll(pageRequest);
+        Page<ProductDto> pageProductDto = productRepository.findAll(pageRequest)
+                .map(product -> {
+                    ProductDto productDto =  modelMapper.map(product, ProductDto.class);
+                    productDto.setCategoryId(product.getCategory().getId());
+                    return productDto;
+                });
+        return pageProductDto;
     }
 
     @Override

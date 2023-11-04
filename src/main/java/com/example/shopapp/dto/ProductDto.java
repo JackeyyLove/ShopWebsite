@@ -15,6 +15,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ProductDto {
     private Long id;
     @NotBlank(message = "Name is required")

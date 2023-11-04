@@ -6,6 +6,7 @@ import com.example.shopapp.dto.ProductImageDto;
 import com.example.shopapp.model.Product;
 import com.example.shopapp.model.ProductImage;
 import com.example.shopapp.service.ProductService;
+import com.github.javafaker.Faker;
 import jakarta.validation.Path;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +46,10 @@ public class ProductController {
                 page, limit,
                 Sort.by("createdAt").descending()
         );
-        Page<Product> productPage = productService.getAllProduct(pageRequest);
-        int totalPages = productPage.getTotalPages();
-        List<Product> products = productPage.getContent();
-        return ResponseEntity.ok(products);
+        Page<ProductDto> productDtoPage = productService.getAllProduct(pageRequest);
+        int totalPages = productDtoPage.getTotalPages();
+        List<ProductDto> productDtos = productDtoPage.getContent();
+        return ResponseEntity.ok(productDtos);
     }
 
     // Build get specific product REST API
@@ -60,7 +61,7 @@ public class ProductController {
     }
 
     //http://localhost:8088/api/v1/products
-    @PostMapping(value = "" )
+    @PostMapping("")
     public ResponseEntity<?> createProduct(@Valid @RequestBody ProductDto productDto,
                                            BindingResult bindingResult) {
         try {
@@ -72,7 +73,7 @@ public class ProductController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
             Product newProduct =  productService.createProduct(productDto);
-            return ResponseEntity.ok(newProduct);
+            return new ResponseEntity<>(newProduct, HttpStatus.CREATED);
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -144,5 +145,29 @@ public class ProductController {
     public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
         return ResponseEntity.ok("Delete product " + id + " successfully");
 
+    }
+
+    // Fake values for product table
+    //@PostMapping("/createFakeProducts")
+    private ResponseEntity<String> createFakeProducts() {
+        Faker faker = new Faker();
+        for (int i = 0; i < 1000; i++) {
+            String productName = faker.commerce().productName();
+            if (productService.existsByName(productName)) {
+                continue;
+            }
+            ProductDto productDto = ProductDto.builder()
+                    .name(productName)
+                    .price((float)faker.number().numberBetween(10, 99999))
+                    .description(faker.lorem().sentence())
+                    .categoryId((long)faker.number().numberBetween(1, 6))
+                    .build();
+            try {
+                productService.createProduct(productDto);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }
+        return ResponseEntity.ok("Generated successfully");
     }
 }
