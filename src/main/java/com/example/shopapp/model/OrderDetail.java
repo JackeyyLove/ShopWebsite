@@ -10,6 +10,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,12 +21,12 @@ public class OrderDetail {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
-    private Order product;
+    private Product product;
     @Column(name = "price", nullable = false)
     private Float price;
     @Column(name = "number_of_products", nullable = false)
     private int numberOfProducts;
     @Column(name = "total_money", nullable = false)
-    private int totalMoney;
+    private Float totalMoney;
     private String color;
 }
